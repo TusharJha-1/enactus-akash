@@ -37,7 +37,16 @@ class Registration(db.Model):
 def home(): return render_template('home.html', title="Home")
 
 @app.route('/projects')
-def projects(): return render_template('projects.html', title="Projects")
+def projects(): return render_template('projects.html', title="Our Work")
+
+@app.route('/project/navodaya')
+def project_navodaya(): return render_template('project_navodaya.html', title="Project Navodaya")
+
+@app.route('/project/astitva')
+def project_astitva(): return render_template('project_astitva.html', title="Project Astitva")
+
+@app.route('/project/vriksh')
+def project_vriksh(): return render_template('project_vriksh.html', title="Project Vriksh")
 
 @app.route('/team')
 def team(): return render_template('team.html', title="Our Team")

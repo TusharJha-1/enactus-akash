@@ -1,31 +1,139 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<section class="container" style="padding-top: 150px;">
-    <h1 data-aos="fade-right" style="font-size: 4rem; margin-bottom: 1rem;">The Minds</h1>
-    <p style="margin-bottom: 3rem; color: var(--text-muted);">Meet the people driving change.</p>
-
-    <!-- Filters -->
-    <div class="filters">
-        <select id="yearFilter" onchange="filterTeam()">
-            <option value="all">All Years</option>
-            <option value="2024">Current Session (2024)</option>
-            <option value="2023">Previous Year (2023)</option>
-            <option value="2022">Alumni (2022)</option>
-        </select>
-
-        <select id="deptFilter" onchange="filterTeam()">
-            <option value="all">All Departments</option>
-            <option value="tech">Tech & Design</option>
-            <option value="marketing">Marketing</option>
-            <option value="research">Research</option>
-            <option value="executive">Executive Board</option>
-        </select>
+<!-- Hero Section -->
+<section class="team-hero">
+    <div class="container">
+        <div class="team-hero-content" data-aos="fade-up">
+            <span class="hero-label">The People Behind The Purpose</span>
+            <h1>Meet Our Core Team</h1>
+            <p class="hero-subtitle">Dedicated individuals working together to create positive change in communities through entrepreneurial action.</p>
+        </div>
     </div>
+    <div class="hero-pattern"></div>
+</section>
 
-    <!-- Team Grid (Populated via JS for demo) -->
-    <div class="team-grid" id="teamContainer">
-        <!-- Members injected here -->
+<!-- Tenure Selector -->
+<section class="tenure-section">
+    <div class="container">
+        <div class="tenure-selector-wrapper" data-aos="fade-up">
+            <div class="tenure-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Select Tenure</span>
+            </div>
+            <select id="tenureFilter" onchange="filterByTenure()">
+                <option value="10.0">Tenure 10.0 (2024-25)</option>
+                <option value="9.0">Tenure 9.0 (2023-24)</option>
+                <option value="8.0">Tenure 8.0 (2022-23)</option>
+                <option value="7.0">Tenure 7.0 (2021-22)</option>
+                <option value="6.0">Tenure 6.0 (2020-21)</option>
+            </select>
+        </div>
+    </div>
+</section>
+
+<!-- Category Tabs -->
+<section class="team-tabs-section">
+    <div class="container">
+        <div class="tabs-container" data-aos="fade-up">
+            <button class="tab-btn active" data-category="council" onclick="switchCategory('council')">
+                <span class="tab-icon">👑</span>
+                Council
+            </button>
+            <button class="tab-btn" data-category="department" onclick="switchCategory('department')">
+                <span class="tab-icon">🎯</span>
+                Department Heads
+            </button>
+            <button class="tab-btn" data-category="project" onclick="switchCategory('project')">
+                <span class="tab-icon">🚀</span>
+                Project Heads
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Team Grid Section -->
+<section class="team-grid-section">
+    <div class="container">
+        <!-- Council Section -->
+        <div id="council-section" class="category-section active">
+            <div class="section-header" data-aos="fade-right">
+                <h2>The Council</h2>
+                <p>The visionaries steering our mission forward</p>
+            </div>
+            <div class="team-grid" id="councilContainer">
+                <!-- Members injected via JS -->
+            </div>
+        </div>
+
+        <!-- Department Heads Section -->
+        <div id="department-section" class="category-section">
+            <div class="section-header" data-aos="fade-right">
+                <h2>Department Heads</h2>
+                <p>Leading specialized teams to excellence</p>
+            </div>
+            <div class="team-grid" id="departmentContainer">
+                <!-- Members injected via JS -->
+            </div>
+        </div>
+
+        <!-- Project Heads Section -->
+        <div id="project-section" class="category-section">
+            <div class="section-header" data-aos="fade-right">
+                <h2>Project Heads</h2>
+                <p>Turning ideas into impactful reality</p>
+            </div>
+            <div class="team-grid" id="projectContainer">
+                <!-- Members injected via JS -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Legacy of Leadership Section -->
+<section class="legacy-section">
+    <div class="container">
+        <div class="legacy-header" data-aos="fade-up">
+            <span class="legacy-label">Our Heritage</span>
+            <h2>Legacy of Leadership</h2>
+            <p>Honoring those who laid the foundation for our journey</p>
+        </div>
+        
+        <div class="legacy-table-wrapper" data-aos="fade-up">
+            <table class="legacy-table">
+                <thead>
+                    <tr>
+                        <th>Tenure</th>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Achievement</th>
+                    </tr>
+                </thead>
+                <tbody id="legacyTableBody">
+                    <!-- Populated via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Quote Section -->
+<section class="quote-section">
+    <div class="container">
+        <div class="quote-content" data-aos="zoom-in">
+            <svg class="quote-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+            </svg>
+            <blockquote>
+                "Alone we can do so little; together we can do so much. Every member of our team is a thread in the tapestry of change we're weaving."
+            </blockquote>
+            <cite>— Enactus Philosophy</cite>
+        </div>
     </div>
 </section>
 {% endblock %}
