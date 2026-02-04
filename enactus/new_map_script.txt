@@ -1,0 +1,146 @@
+<!-- Dotted Map Script -->
+<script>
+    (function () {
+        // --- 1. Dotted Map Rendering ---
+        const canvas = document.getElementById('dottedMapCanvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('dottedMapWrapper');
+        
+        // Load the mask image
+        const mapMask = new Image();
+        mapMask.src = '/static/images/world_map_mask.png';
+        let maskData = null;
+        let maskWidth = 0;
+        let maskHeight = 0;
+
+        mapMask.onload = function() {
+            // Create an offscreen canvas to read pixel data
+            const offCanvas = document.createElement('canvas');
+            maskWidth = mapMask.width;
+            maskHeight = mapMask.height;
+            offCanvas.width = maskWidth;
+            offCanvas.height = maskHeight;
+            const offCtx = offCanvas.getContext('2d');
+            offCtx.drawImage(mapMask, 0, 0);
+            
+            // Get pixel data
+            const imageData = offCtx.getImageData(0, 0, maskWidth, maskHeight);
+            maskData = imageData.data;
+            
+            // Draw the map initially
+            drawDottedMap();
+        };
+
+        function isLand(x, y, width, height) {
+            if (!maskData) return false;
+            
+            // Map canvas coordinates to mask image coordinates
+            // Assuming Equirectangular projection match
+            const maskX = Math.floor((x / width) * maskWidth);
+            const maskY = Math.floor((y / height) * maskHeight);
+            
+            if (maskX < 0 || maskX >= maskWidth || maskY < 0 || maskY >= maskHeight) return false;
+            
+            // Index in pixel array (R, G, B, A)
+            const index = (maskY * maskWidth + maskX) * 4;
+            
+            // Check alpha/opacity or darkness
+            // Our mask is black continents on white/transparent
+            // If transparent (alpha < 50) -> Ocean (if image is transparent bg)
+            // If Black (R<50) -> Land
+            
+            const r = maskData[index];
+            const g = maskData[index + 1];
+            const b = maskData[index + 2];
+            const a = maskData[index + 3];
+
+            // If opaque and dark, it's land
+            return a > 100 && r < 100;
+        }
+
+        function drawDottedMap() {
+            if (!maskData) return; // Wait for image load
+
+            const rect = wrapper.getBoundingClientRect();
+            const width = rect.width;
+            // Force 2:1 aspect ratio for accurate Equirectangular projection
+            const height = width / 2; // Math.max(300, rect.height);
+            
+            // Update wrapper height to fit the map if needed, or just center it
+            // wrapper.style.height = height + 'px'; 
+
+            canvas.width = width * window.devicePixelRatio;
+            canvas.height = height * window.devicePixelRatio;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            ctx.clearRect(0, 0, width, height);
+
+            const dotSize = 1.25; // Slightly smaller dots for higher detail
+            const spacing = 6;    // Tighter spacing for better resolution
+            const dotColor = 'rgba(212, 165, 83, 0.15)'; // Faint dots for ocean
+            const landColor = 'rgba(212, 165, 83, 0.8)'; // Bright dots for land
+
+            // Draw dot grid
+            for (let y = spacing / 2; y < height; y += spacing) {
+                for (let x = spacing / 2; x < width; x += spacing) {
+                    const land = isLand(x, y, width, height);
+
+                    if (land || true) { // Draw ocean dots too? Or just land?
+                        // Let's draw ocean dots very faintly for context, land dots brightly
+                         ctx.beginPath();
+                        if (land) {
+                            ctx.arc(x, y, dotSize, 0, Math.PI * 2);
+                            ctx.fillStyle = landColor;
+                            ctx.fill();
+                        } else {
+                            // Optional: Faint ocean dots
+                            ctx.arc(x, y, dotSize * 0.5, 0, Math.PI * 2);
+                            ctx.fillStyle = dotColor;
+                            ctx.fill();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Redraw on resize
+        let resizeTimeout;
+        window.addEventListener('resize', function () {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(drawDottedMap, 150);
+        });
+        
+        // --- 2. Interactive Tooltips ---
+        const tooltip = document.getElementById('map-tooltip');
+        const markers = document.querySelectorAll('.marker');
+
+        if (tooltip && markers.length > 0) {
+            markers.forEach(marker => {
+                marker.addEventListener('mouseenter', (e) => {
+                    const name = marker.getAttribute('data-name');
+                    if (name) {
+                        tooltip.textContent = name;
+                        tooltip.classList.add('visible');
+                    }
+                });
+
+                marker.addEventListener('mousemove', (e) => {
+                    const wrapperRect = wrapper.getBoundingClientRect();
+                    const x = e.clientX - wrapperRect.left;
+                    const y = e.clientY - wrapperRect.top;
+                    
+                    tooltip.style.left = x + 'px';
+                    tooltip.style.top = y + 'px';
+                });
+
+                marker.addEventListener('mouseleave', () => {
+                    tooltip.classList.remove('visible');
+                });
+            });
+        }
+    })();
+</script>

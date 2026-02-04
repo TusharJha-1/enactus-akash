@@ -9,20 +9,20 @@ function animateCounter(element) {
     const frameDuration = 1000 / 60; // 60fps
     const totalFrames = Math.round(duration / frameDuration);
     const easeOutQuad = t => t * (2 - t);
-    
+
     let frame = 0;
     const counter = setInterval(() => {
         frame++;
         const progress = easeOutQuad(frame / totalFrames);
         const currentCount = Math.round(target * progress);
-        
+
         // Format large numbers with K suffix
         if (target >= 10000) {
             element.textContent = (currentCount / 1000).toFixed(1) + 'k' + suffix;
         } else {
             element.textContent = currentCount + suffix;
         }
-        
+
         if (frame === totalFrames) {
             clearInterval(counter);
             // Final value formatting
@@ -36,9 +36,9 @@ function animateCounter(element) {
 }
 
 function initCountingAnimation() {
-    const statNumbers = document.querySelectorAll('.stat-number');
+    const statNumbers = document.querySelectorAll('.stat-number, .home-stat-number');
     if (statNumbers.length === 0) return;
-    
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -47,7 +47,7 @@ function initCountingAnimation() {
             }
         });
     }, { threshold: 0.5 });
-    
+
     statNumbers.forEach(stat => observer.observe(stat));
 }
 
@@ -58,7 +58,7 @@ function initCountingAnimation() {
 function initPastProjectsScroll() {
     const track = document.querySelector('.past-projects-track');
     if (!track) return;
-    
+
     // Clone items for infinite scroll effect
     const items = track.innerHTML;
     track.innerHTML = items + items;
@@ -70,7 +70,7 @@ function initPastProjectsScroll() {
 
 function initSmoothScroll() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+        anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
@@ -101,7 +101,7 @@ function initCharacterAnimation() {
 function initParallaxEffect() {
     const hero = document.querySelector('.projects-hero');
     if (!hero) return;
-    
+
     window.addEventListener('scroll', () => {
         const scrolled = window.pageYOffset;
         const heroContent = hero.querySelector('.projects-hero-content');
@@ -118,22 +118,22 @@ function initParallaxEffect() {
 
 function initTiltEffect() {
     const cards = document.querySelectorAll('.portrait-card');
-    
+
     cards.forEach(card => {
         card.addEventListener('mousemove', (e) => {
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
+
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
-            
+
             const rotateX = (y - centerY) / 15;
             const rotateY = (centerX - x) / 15;
-            
+
             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
         });
-        
+
         card.addEventListener('mouseleave', () => {
             card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
         });
@@ -147,7 +147,7 @@ function initTiltEffect() {
 function scrollGallery(direction) {
     const wrapper = document.querySelector('.gallery-scroll-wrapper');
     if (!wrapper) return;
-    
+
     const scrollAmount = 350;
     wrapper.scrollBy({
         left: direction * scrollAmount,
@@ -158,28 +158,28 @@ function scrollGallery(direction) {
 function initGalleryDrag() {
     const wrapper = document.querySelector('.gallery-scroll-wrapper');
     if (!wrapper) return;
-    
+
     let isDown = false;
     let startX;
     let scrollLeft;
-    
+
     wrapper.addEventListener('mousedown', (e) => {
         isDown = true;
         wrapper.style.cursor = 'grabbing';
         startX = e.pageX - wrapper.offsetLeft;
         scrollLeft = wrapper.scrollLeft;
     });
-    
+
     wrapper.addEventListener('mouseleave', () => {
         isDown = false;
         wrapper.style.cursor = 'grab';
     });
-    
+
     wrapper.addEventListener('mouseup', () => {
         isDown = false;
         wrapper.style.cursor = 'grab';
     });
-    
+
     wrapper.addEventListener('mousemove', (e) => {
         if (!isDown) return;
         e.preventDefault();
@@ -187,7 +187,7 @@ function initGalleryDrag() {
         const walk = (x - startX) * 2;
         wrapper.scrollLeft = scrollLeft - walk;
     });
-    
+
     // Set initial cursor
     wrapper.style.cursor = 'grab';
 }
@@ -241,7 +241,7 @@ const legacyData = [
 
 function renderPortraitCard(member, showDept = false) {
     const deptHtml = showDept && member.dept ? `<span class="portrait-dept">${member.dept}</span>` : '';
-    
+
     return `
         <div class="portrait-card" data-aos="fade-up">
             <div class="portrait-image">
@@ -273,11 +273,11 @@ function renderPortraitCard(member, showDept = false) {
 
 function renderMemberCard(member, showDept = false) {
     const deptHtml = showDept && member.dept ? `<p class="member-dept">${member.dept}</p>` : '';
-    
+
     return `
         <div class="member-card" data-aos="fade-up">
             <div class="member-avatar">
-                <img src="${member.img}" alt="${member.name}" loading="lazy" onerror="this.parentElement.innerHTML='<span>${member.name.split(' ').map(n=>n[0]).join('')}</span>'; this.parentElement.classList.add('placeholder');">
+                <img src="${member.img}" alt="${member.name}" loading="lazy" onerror="this.parentElement.innerHTML='<span>${member.name.split(' ').map(n => n[0]).join('')}</span>'; this.parentElement.classList.add('placeholder');">
             </div>
             <h3 class="member-name">${member.name}</h3>
             <p class="member-role">${member.role}</p>
@@ -296,9 +296,9 @@ function renderMemberCard(member, showDept = false) {
 function renderTeamSection(tenure, category, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    
+
     const members = teamData[tenure]?.[category] || [];
-    
+
     if (members.length === 0) {
         container.innerHTML = `
             <div class="no-data-message" style="text-align: center; padding: 3rem; color: #7a8b88; grid-column: 1 / -1;">
@@ -311,16 +311,16 @@ function renderTeamSection(tenure, category, containerId) {
         `;
         return;
     }
-    
+
     const showDept = category !== 'council';
     // Use portrait cards for the new design
     container.innerHTML = members.map(m => renderPortraitCard(m, showDept)).join('');
-    
+
     // Re-initialize AOS for new elements
     if (typeof AOS !== 'undefined') {
         AOS.refresh();
     }
-    
+
     // Initialize tilt effect for new cards
     setTimeout(() => initTiltEffect(), 100);
 }
@@ -328,7 +328,7 @@ function renderTeamSection(tenure, category, containerId) {
 function renderLegacyTable() {
     const tbody = document.getElementById('legacyTableBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = legacyData.map(leader => `
         <tr>
             <td><span class="tenure-badge">${leader.tenure}</span></td>
@@ -349,14 +349,14 @@ let currentCategory = "council";
 function filterByTenure() {
     const tenureSelect = document.getElementById('tenureFilter');
     if (!tenureSelect) return;
-    
+
     currentTenure = tenureSelect.value;
     renderAllSections();
 }
 
 function switchCategory(category) {
     currentCategory = category;
-    
+
     // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -364,12 +364,12 @@ function switchCategory(category) {
             btn.classList.add('active');
         }
     });
-    
+
     // Update sections
     document.querySelectorAll('.category-section').forEach(section => {
         section.classList.remove('active');
     });
-    
+
     const targetSection = document.getElementById(`${category}-section`);
     if (targetSection) {
         targetSection.classList.add('active');
@@ -393,19 +393,19 @@ document.addEventListener('DOMContentLoaded', () => {
     initCharacterAnimation();
     initParallaxEffect();
     initSmoothScroll();
-    
+
     // Team Page Initialization
     if (document.getElementById('councilContainer')) {
         renderAllSections();
         renderLegacyTable();
     }
-    
+
     // Gallery drag functionality
     initGalleryDrag();
-    
+
     // Initialize tilt effect
     initTiltEffect();
-    
+
     // Legacy Team Grid (Old Implementation - Keep for backward compatibility)
     if (document.getElementById('teamContainer')) {
         renderTeam(teamMembers);
@@ -481,7 +481,7 @@ function toggleEvent(card) {
 // Fade out flash messages after 4 seconds
 setTimeout(() => {
     const flash = document.querySelector('.flash-messages');
-    if(flash) {
+    if (flash) {
         flash.style.transition = "opacity 1s ease";
         flash.style.opacity = 0;
         setTimeout(() => flash.remove(), 1000);

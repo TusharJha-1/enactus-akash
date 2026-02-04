@@ -40,6 +40,7 @@ class Event(db.Model):
     # Team event fields
     min_team_size = db.Column(db.Integer, nullable=True)  # Minimum team members
     max_team_size = db.Column(db.Integer, nullable=True)  # Maximum team members
+    event_link = db.Column(db.String(500), nullable=True)  # External link/URL for event
 
 class Registration(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -95,13 +96,7 @@ def events():
 @app.route('/register_event', methods=['POST'])
 def register_event():
     event_id = request.form.get('event_id')
-    name = request.form.get('name')
-    email = request.form.get('email')
-    student_id = request.form.get('student_id')
-
-    if not name or not email:
-        flash("Please fill in all fields.", "error")
-        return redirect(url_for('events'))
+    event_type = request.form.get('event_type', 'solo')
     
     # Check event exists and is open
     event = Event.query.get(event_id)
@@ -121,7 +116,57 @@ def register_event():
             return redirect(url_for('events'))
 
     try:
-        new_reg = Registration(event_id=event_id, name=name, email=email, student_id=student_id)
+        if event_type == 'team':
+            # Team event registration
+            team_name = request.form.get('team_name')
+            team_size = request.form.get('team_size')
+            leader_name = request.form.get('name')
+            leader_email = request.form.get('email')
+            leader_contact = request.form.get('phone')
+            college = request.form.get('college')
+            
+            if not team_name or not leader_name or not leader_email:
+                flash("Please fill in all required fields.", "error")
+                return redirect(url_for('events'))
+            
+            new_reg = Registration(
+                event_id=event_id,
+                registration_type='team',
+                team_name=team_name,
+                team_size=int(team_size) if team_size else None,
+                leader_name=leader_name,
+                leader_email=leader_email,
+                leader_contact=leader_contact,
+                college_name=college,
+                name=leader_name,
+                email=leader_email
+            )
+            reg_name = team_name
+        else:
+            # Solo event registration
+            name = request.form.get('name')
+            email = request.form.get('email')
+            student_id = request.form.get('student_id')
+            phone = request.form.get('phone')
+            branch = request.form.get('branch')
+            college = request.form.get('college')
+            
+            if not name or not email:
+                flash("Please fill in all required fields.", "error")
+                return redirect(url_for('events'))
+            
+            new_reg = Registration(
+                event_id=event_id,
+                registration_type='solo',
+                name=name,
+                email=email,
+                student_id=student_id,
+                contact_no=phone,
+                branch=branch,
+                college_name=college
+            )
+            reg_name = name
+        
         db.session.add(new_reg)
         db.session.commit()
         
@@ -131,13 +176,14 @@ def register_event():
             if updated_count >= event.max_registrations:
                 event.is_open = False
                 db.session.commit()
-                flash(f"Success! {name}, you are registered. Event is now full!", "success")
+                flash(f"Success! {reg_name}, you are registered. Event is now full!", "success")
             else:
-                flash(f"Success! {name}, you are registered. ({updated_count}/{event.max_registrations} spots filled)", "success")
+                flash(f"Success! {reg_name}, you are registered. ({updated_count}/{event.max_registrations} spots filled)", "success")
         else:
-            flash(f"Success! {name}, you are registered.", "success")
+            flash(f"Success! {reg_name}, you are registered.", "success")
     except Exception as e:
         db.session.rollback()
+        print(f"Registration error: {e}")
         flash("Something went wrong.", "error")
 
     return redirect(url_for('events'))
@@ -189,6 +235,7 @@ def add_event():
     event_time = request.form.get('time')
     venue = request.form.get('venue')
     max_reg = request.form.get('max_registrations')
+    event_link = request.form.get('event_link')
 
     try:
         start_date_obj = datetime.datetime.strptime(start_date, '%Y-%m-%d')
@@ -210,7 +257,8 @@ def add_event():
             venue=venue if venue else None,
             max_registrations=int(max_reg) if max_reg else None,
             min_team_size=int(min_team_size) if min_team_size and event_type == 'team' else None,
-            max_team_size=int(max_team_size) if max_team_size and event_type == 'team' else None
+            max_team_size=int(max_team_size) if max_team_size and event_type == 'team' else None,
+            event_link=event_link if event_link else None
         )
         db.session.add(new_event)
         db.session.commit()
@@ -261,6 +309,10 @@ def edit_event(event_id):
         # Handle max registrations
         max_reg = request.form.get('max_registrations')
         event.max_registrations = int(max_reg) if max_reg else None
+        
+        # Handle event link
+        event_link = request.form.get('event_link')
+        event.event_link = event_link if event_link else None
         
         db.session.commit()
         flash(f"Event '{event.title}' updated successfully!", "success")
