@@ -57,13 +57,15 @@
     </style>
 </head>
 
-<body class="is-loading">
+<body class="{{ 'is-loading' if request.path == '/' else '' }}">
     <!-- Loading Screen with Video -->
+    {% if request.path == '/' %}
     <div id="loadingScreen">
         <video id="loadingVideo" muted playsinline preload="auto">
             <source src="{{ url_for('static', filename='video/loading.mp4') }}" type="video/mp4">
         </video>
     </div>
+    {% endif %}
 
     <nav>
         <div class="logo">enactus<span>.</span></div>
@@ -103,6 +105,7 @@
         AOS.init({ duration: 1000, once: true });
 
         // ========== LOADING SCREEN HANDLER ==========
+        {% if request.path == '/' %}
         (function () {
             var screen = document.getElementById('loadingScreen');
             var video = document.getElementById('loadingVideo');
@@ -185,6 +188,17 @@
 
             setupLinkListeners();
         })();
+        {% else %}
+        // Ensure internal navigation flag is set even on other pages for consistency
+        document.querySelectorAll('a').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                var href = link.getAttribute('href');
+                if (href && !href.startsWith('http') && !href.startsWith('//') && !href.startsWith('#')) {
+                    sessionStorage.setItem('internalNavigation', 'true');
+                }
+            });
+        });
+        {% endif %}
     </script>
 </body>
 
