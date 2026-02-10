@@ -180,9 +180,8 @@ def register_event():
         if event.max_registrations:
             updated_count = Registration.query.filter_by(event_id=event_id).count()
             if updated_count >= event.max_registrations:
-                event.is_open = False
-                db.session.commit()
-                flash(f"Success! {reg_name}, you are registered. Event is now full!", "success")
+                # Event is full but keeps is_open=True so it shows in Upcoming (as "Full")
+                flash(f"Success! {reg_name}, you are registered. The event has now reached maximum capacity.", "success")
             else:
                 flash(f"Success! {reg_name}, you are registered. ({updated_count}/{event.max_registrations} spots filled)", "success")
         else:
@@ -639,4 +638,4 @@ def seed_database():
 
 if __name__ == '__main__':
     seed_database()
-    app.run(host='0.0.0.0',port=5000)
+    app.run(host='0.0.0.0',port=5003, threaded=True)

@@ -7,7 +7,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
-    <div class="flash-msg" style="border-color: {{ '#16a34a' if category == 'success' else '#dc2626' }};">
+    <div class="flash-msg {{ 'flash-success' if category == 'success' else 'flash-error' }}">
         {{ message }}
     </div>
     {% endfor %}
@@ -173,8 +173,10 @@
                     </div>
 
                     {% if event.event_link %}
-                    <a href="{{ event.event_link }}" target="_blank" class="btn-external-form" onclick="event.stopPropagation();">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <a href="{{ event.event_link }}" target="_blank" class="btn-external-form"
+                        onclick="event.stopPropagation();">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
                             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                             <polyline points="15 3 21 3 21 9"></polyline>
                             <line x1="10" y1="14" x2="21" y2="3"></line>
@@ -183,7 +185,19 @@
                     </a>
                     {% endif %}
 
-                    <button class="btn-expand-event" onclick="openEventModal({{ event.id }})">
+                    {% if event.max_registrations and event.registrations|length >= event.max_registrations %}
+                    <button class="btn-expand-event disabled"
+                        style="opacity: 0.6; cursor: not-allowed; background: #6b7280; color: #fff;">
+                        Registration Full
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                    </button>
+                    {% else %}
+                    <button class="btn-expand-event js-open-modal" data-event-id="{{ event.id }}">
                         Register Now
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2">
@@ -191,6 +205,7 @@
                             <polyline points="12 5 19 12 12 19"></polyline>
                         </svg>
                     </button>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -281,9 +296,9 @@
 {% for event in events %}
 {% if event.is_open %}
 <div class="event-modal" id="event-modal-{{ event.id }}">
-    <div class="modal-backdrop" onclick="closeEventModal({{ event.id }})"></div>
+    <div class="modal-backdrop js-close-modal" data-event-id="{{ event.id }}"></div>
     <div class="modal-container">
-        <button class="modal-close" onclick="closeEventModal({{ event.id }})">
+        <button class="modal-close js-close-modal" data-event-id="{{ event.id }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -372,13 +387,15 @@
                     {% endif %}
                     {% if event.event_link %}
                     <div class="modal-meta-item">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                         </svg>
                         <div>
                             <span class="meta-label">Form Link</span>
-                            <a href="{{ event.event_link }}" target="_blank" class="meta-value" style="color: #c4704f; text-decoration: underline;">Open Registration Form</a>
+                            <a href="{{ event.event_link }}" target="_blank" class="meta-value"
+                                style="color: #c4704f; text-decoration: underline;">Open Registration Form</a>
                         </div>
                     </div>
                     {% endif %}
@@ -386,6 +403,18 @@
             </div>
 
             <div class="modal-form">
+                {% if event.max_registrations and event.registrations|length >= event.max_registrations %}
+                <div class="registration-closed-message" style="text-align: center; padding: 2rem; color: #ef4444;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" style="margin-bottom: 1rem;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #1f2937;">Registration Full</h3>
+                    <p style="color: #6b7280;">Sorry, all spots for this event have been filled.</p>
+                </div>
+                {% else %}
                 <h4>Register Now</h4>
                 <form action="{{ url_for('register_event') }}" method="POST">
                     <input type="hidden" name="event_id" value="{{ event.id }}">
@@ -478,6 +507,7 @@
                         </svg>
                     </button>
                 </form>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -489,6 +519,18 @@
     /* =========================================
    EVENTS PAGE STYLES
    ========================================= */
+
+    .flash-msg.flash-success {
+        border-color: #16a34a;
+        background-color: rgba(22, 163, 74, 0.1);
+        color: #16a34a;
+    }
+
+    .flash-msg.flash-error {
+        border-color: #dc2626;
+        background-color: rgba(220, 38, 38, 0.1);
+        color: #dc2626;
+    }
 
     /* Events Hero */
     .events-hero {
@@ -1293,6 +1335,34 @@
 </style>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Event Delegation for Opening Modals
+        document.body.addEventListener('click', function (e) {
+            // Handle Open Modal
+            const openBtn = e.target.closest('.js-open-modal');
+            if (openBtn) {
+                const eventId = openBtn.getAttribute('data-event-id');
+                const modal = document.getElementById('event-modal-' + eventId);
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+
+            // Handle Close Modal (Button or Backdrop)
+            const closeBtn = e.target.closest('.js-close-modal');
+            if (closeBtn) {
+                const eventId = closeBtn.getAttribute('data-event-id');
+                const modal = document.getElementById('event-modal-' + eventId);
+                if (modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+    });
+
+    // Keep old functions for fallback/compatibility if needed externally
     function openEventModal(eventId) {
         const modal = document.getElementById('event-modal-' + eventId);
         if (modal) {

@@ -32,33 +32,14 @@
         }
 
         #loadingScreen video {
-            max-width: 320px;
-            width: 80%;
+            max-width: 800px;
+            width: 90%;
             height: auto;
-            border-radius: 12px;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8);
         }
 
-        #loadingScreen .loading-text {
-            color: #d4a553;
-            font-size: 0.75rem;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            font-weight: 500;
-            animation: loadingPulse 1.5s ease-in-out infinite;
-        }
 
-        @keyframes loadingPulse {
-
-            0%,
-            100% {
-                opacity: 0.5;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
 
         /* Page starts invisible, fades in after loading */
         body.is-loading nav,
@@ -82,11 +63,15 @@
         <video id="loadingVideo" muted playsinline preload="auto">
             <source src="{{ url_for('static', filename='video/loading.mp4') }}" type="video/mp4">
         </video>
-        <span class="loading-text">Loading Experience</span>
     </div>
 
     <nav>
         <div class="logo">enactus<span>.</span></div>
+        <div class="hamburger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+        </div>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/projects">Projects</a></li>
@@ -124,40 +109,81 @@
             var body = document.body;
             var hidden = false;
 
-            function hideLoading() {
+            // Helper to hide loading immediately
+            function hideLoadingNow() {
+                if (hidden) return;
+                hidden = true;
+                screen.style.display = 'none'; // Force hide
+                screen.classList.add('hidden');
+                body.classList.remove('is-loading');
+            }
+
+            // Normal fade out
+            function hideLoadingFade() {
                 if (hidden) return;
                 hidden = true;
                 screen.classList.add('hidden');
                 body.classList.remove('is-loading');
             }
 
-            // Set 2x speed
+            // Check if this is a navigation from internal links (via sessionStorage flag)
+            var isInternalNavigation = sessionStorage.getItem('internalNavigation') === 'true';
+
+            // Check if it is a reload
+            var isReload = (performance.getEntriesByType &&
+                performance.getEntriesByType('navigation')[0] &&
+                performance.getEntriesByType('navigation')[0].type === 'reload') ||
+                (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+
+            // Clear the flag immediately
+            sessionStorage.removeItem('internalNavigation');
+
+            // If internal navigation and not a reload, hide loading immediately
+            if (isInternalNavigation && !isReload) {
+                hideLoadingNow();
+                // Add event listeners for new page links
+                setupLinkListeners();
+                return;
+            }
+
+            // AESTHETICS: 2.0x Speed (As requested)
             video.playbackRate = 2.0;
 
-            // Try to play video
+            // Video Error Handling
             var playAttempt = video.play();
-
             if (playAttempt !== undefined) {
                 playAttempt.then(function () {
-                    // Playing successfully - wait for end or timeout
+                    // Playing successfully
                     video.playbackRate = 2.0;
                 }).catch(function (error) {
-                    // Autoplay blocked - just hide after delay
-                    console.log('Video autoplay blocked:', error);
-                    setTimeout(hideLoading, 500);
+                    console.log('Autoplay blocked:', error);
+                    setTimeout(hideLoadingFade, 500);
                 });
             }
 
-            // When video ends, hide loading
-            video.onended = hideLoading;
+            video.onended = hideLoadingFade;
 
-            // Fallback: hide after 2 seconds no matter what
-            setTimeout(hideLoading, 2000);
+            // Fallback timeout: 2.0 seconds (As requested)
+            setTimeout(hideLoadingFade, 2000);
 
-            // Also hide when page fully loads
-            window.onload = function () {
-                setTimeout(hideLoading, 1500);
-            };
+            window.addEventListener('load', function () {
+                setTimeout(hideLoadingFade, 1500);
+            });
+
+            // Mark internal navigation when clicking links
+            function setupLinkListeners() {
+                document.querySelectorAll('a').forEach(function (link) {
+                    link.addEventListener('click', function (e) {
+                        var href = link.getAttribute('href');
+                        // Only mark as internal navigation for same-site links
+                        if (href && !href.startsWith('http') && !href.startsWith('//') && !href.startsWith('#')) {
+                            sessionStorage.setItem('internalNavigation', 'true');
+                        }
+                    });
+                });
+            }
+
+            setupLinkListeners();
         })();
     </script>
 </body>
