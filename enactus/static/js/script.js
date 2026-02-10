@@ -471,11 +471,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize tilt effect
     initTiltEffect();
 
+    // Initialize tilt effect
+    initTiltEffect();
+
+    // Emotional Design: Micro-interactions
+    initMagneticButtons();
+
     // Legacy Team Grid (Old Implementation - Keep for backward compatibility)
     if (document.getElementById('teamContainer')) {
         renderTeam(teamMembers);
     }
 });
+
+// =============================================
+// EMOTIONAL DESIGN - MAGNETIC BUTTONS
+// =============================================
+function initMagneticButtons() {
+    const buttons = document.querySelectorAll('.btn-primary, .btn-secondary, .nav-links a');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            // Magnetic pull strength (lower is stronger/more movement)
+            btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = 'translate(0, 0)';
+        });
+    });
+}
 
 // =============================================
 // LEGACY CODE - KEEP FOR BACKWARD COMPATIBILITY

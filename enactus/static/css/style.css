@@ -2,6 +2,7 @@
    1. IMPORTS & VARIABLES
    ========================================= */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@400;600;700&display=swap');
+@import url('emotional_design.css');
 
 :root {
     --bg-color: #FAFAF9;
@@ -15,6 +16,22 @@
     --brand-yellow-soft: #FDE047;
     --border-color: #E5E5E5;
     --glass: rgba(250, 250, 249, 0.85);
+
+    /* --- FLUID TYPOGRAPHY & SPACING --- */
+    /* Scales from 3.5rem (mobile) to 6rem (desktop) */
+    --fs-h1: clamp(3.5rem, 5vw + 1rem, 7rem);
+    /* Scales from 2rem to 3.5rem */
+    --fs-h2: clamp(2rem, 4vw + 0.5rem, 3.5rem);
+    /* Scales from 1.5rem to 2.5rem */
+    --fs-h3: clamp(1.5rem, 3vw, 2.5rem);
+    /* Body text fluid scaling */
+    --fs-body: clamp(1rem, 0.5vw + 0.8rem, 1.15rem);
+
+    /* Fluid Spacing */
+    --spacing-xs: clamp(0.5rem, 1vw, 1rem);
+    --spacing-sm: clamp(1rem, 2vw, 2rem);
+    --spacing-md: clamp(2rem, 4vw, 4rem);
+    --spacing-lg: clamp(4rem, 8vw, 8rem);
 }
 
 * {
@@ -81,11 +98,30 @@ h4 {
     font-weight: 700;
     letter-spacing: -0.03em;
     color: var(--text-main);
+    line-height: 1.1;
+}
+
+h1 {
+    font-size: var(--fs-h1);
+    margin-bottom: var(--spacing-sm);
+}
+
+h2 {
+    font-size: var(--fs-h2);
+    margin-bottom: var(--spacing-sm);
+}
+
+h3 {
+    font-size: var(--fs-h3);
+    margin-bottom: var(--spacing-xs);
 }
 
 p {
-    margin-bottom: 1rem;
+    font-size: var(--fs-body);
+    margin-bottom: var(--spacing-sm);
 }
+
+
 
 .container {
     max-width: 1400px;
@@ -241,9 +277,9 @@ nav.nav-scrolled {
 }
 
 .hero-content h1 {
-    font-size: 6rem;
-    line-height: 0.9;
-    margin-bottom: 2rem;
+    font-size: var(--fs-h1);
+    line-height: 1;
+    margin-bottom: var(--spacing-sm);
     text-transform: uppercase;
 }
 
@@ -4473,22 +4509,53 @@ footer p {
     }
 
     .nav-links {
-        position: absolute;
-        right: 0px;
-        height: 92vh;
-        top: 8vh;
-        background: rgba(255, 255, 255, 0.98);
+        position: fixed;
+        right: 0;
+        top: 0;
+        height: 100vh;
+        width: 100%;
+        background: rgba(250, 250, 249, 0.98);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 100%;
-        transform: translateX(100%);
-        transition: transform 0.5s ease-in;
-        border-radius: 0 0 20px 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transform: translateY(-100%);
+        /* Slide from top */
+        transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+        z-index: 9998;
         gap: 2rem;
-        z-index: 999;
+        pointer-events: none;
+        /* Allow clicking through when hidden */
+    }
+
+    .nav-active {
+        transform: translateY(0%);
+        pointer-events: auto;
+    }
+
+    .nav-links a {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 2.5rem;
+        /* Large, bold typography */
+        font-weight: 700;
+        color: var(--text-main);
+        text-transform: capitalize;
+        /* Softer than uppercase */
+        opacity: 0;
+        transform: translateY(20px);
+        transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover {
+        color: var(--brand-yellow);
+        letter-spacing: 2px;
+    }
+
+    .hamburger {
+        z-index: 9999;
+        position: relative;
     }
 
     .nav-links li {
@@ -4500,9 +4567,7 @@ footer p {
     }
 
     /* Nav Active State (Toggled via JS) */
-    .nav-active {
-        transform: translateX(0%);
-    }
+    /* Nav Active State - handled in .nav-links now for sliding from top */
 
     /* Hamburger Animation */
     .toggle .line1 {

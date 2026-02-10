@@ -58,6 +58,13 @@
 </head>
 
 <body class="{{ 'is-loading' if request.path == '/' else '' }}">
+    <!-- Emotional Design: Ambient Background -->
+    <div class="ambient-glow">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
     <!-- Loading Screen with Video -->
     {% if request.path == '/' %}
     <div id="loadingScreen">
@@ -104,101 +111,86 @@
     <script>
         AOS.init({ duration: 1000, once: true });
 
-        // ========== LOADING SCREEN HANDLER ==========
-        {% if request.path == '/' %}
-        (function () {
-            var screen = document.getElementById('loadingScreen');
-            var video = document.getElementById('loadingVideo');
-            var body = document.body;
-            var hidden = false;
+        // Global Configuration
+        window.ENACTUS = {
+            isHomePage: {{ 'true' if request.path == '/' else 'false' }}
+        };
 
-            // Helper to hide loading immediately
-            function hideLoadingNow() {
-                if (hidden) return;
-                hidden = true;
-                screen.style.display = 'none'; // Force hide
-                screen.classList.add('hidden');
-                body.classList.remove('is-loading');
-            }
-
-            // Normal fade out
-            function hideLoadingFade() {
-                if (hidden) return;
-                hidden = true;
-                screen.classList.add('hidden');
-                body.classList.remove('is-loading');
-            }
-
-            // Check if this is a navigation from internal links (via sessionStorage flag)
-            var isInternalNavigation = sessionStorage.getItem('internalNavigation') === 'true';
-
-            // Check if it is a reload
-            var isReload = (performance.getEntriesByType &&
-                performance.getEntriesByType('navigation')[0] &&
-                performance.getEntriesByType('navigation')[0].type === 'reload') ||
-                (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
-
-            // Clear the flag immediately
-            sessionStorage.removeItem('internalNavigation');
-
-            // If internal navigation and not a reload, hide loading immediately
-            if (isInternalNavigation && !isReload) {
-                hideLoadingNow();
-                // Add event listeners for new page links
-                setupLinkListeners();
-                return;
-            }
-
-            // AESTHETICS: 2.0x Speed (As requested)
-            video.playbackRate = 2.0;
-
-            // Video Error Handling
-            var playAttempt = video.play();
-            if (playAttempt !== undefined) {
-                playAttempt.then(function () {
-                    // Playing successfully
-                    video.playbackRate = 2.0;
-                }).catch(function (error) {
-                    console.log('Autoplay blocked:', error);
-                    setTimeout(hideLoadingFade, 500);
+        // ========== INTERNAL NAVIGATION HANDLER ==========
+        // Tracks if the user clicked a link on the site to prevent loading screen on internal navigation
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('a').forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    var href = link.getAttribute('href');
+                    if (href && !href.startsWith('http') && !href.startsWith('//') && !href.startsWith('#')) {
+                        sessionStorage.setItem('internalNavigation', 'true');
+                    }
                 });
-            }
-
-            video.onended = hideLoadingFade;
-
-            // Fallback timeout: 2.0 seconds (As requested)
-            setTimeout(hideLoadingFade, 2000);
-
-            window.addEventListener('load', function () {
-                setTimeout(hideLoadingFade, 1500);
-            });
-
-            // Mark internal navigation when clicking links
-            function setupLinkListeners() {
-                document.querySelectorAll('a').forEach(function (link) {
-                    link.addEventListener('click', function (e) {
-                        var href = link.getAttribute('href');
-                        // Only mark as internal navigation for same-site links
-                        if (href && !href.startsWith('http') && !href.startsWith('//') && !href.startsWith('#')) {
-                            sessionStorage.setItem('internalNavigation', 'true');
-                        }
-                    });
-                });
-            }
-
-            setupLinkListeners();
-        })();
-        {% else %}
-        // Ensure internal navigation flag is set even on other pages for consistency
-        document.querySelectorAll('a').forEach(function (link) {
-            link.addEventListener('click', function (e) {
-                var href = link.getAttribute('href');
-                if (href && !href.startsWith('http') && !href.startsWith('//') && !href.startsWith('#')) {
-                    sessionStorage.setItem('internalNavigation', 'true');
-                }
             });
         });
-        {% endif %}
+
+        // ========== LOADING SCREEN LOGIC ==========
+        if (window.ENACTUS.isHomePage) {
+            (function () {
+                var screen = document.getElementById('loadingScreen');
+                var video = document.getElementById('loadingVideo');
+                var body = document.body;
+                var hidden = false;
+
+                function hideLoadingNow() {
+                    if (hidden) return;
+                    hidden = true;
+                    if (screen) {
+                        screen.style.display = 'none';
+                        screen.classList.add('hidden');
+                    }
+                    body.classList.remove('is-loading');
+                }
+
+                function hideLoadingFade() {
+                    if (hidden) return;
+                    hidden = true;
+                    if (screen) screen.classList.add('hidden');
+                    body.classList.remove('is-loading');
+                }
+
+                // Check navigation type
+                var isInternal = sessionStorage.getItem('internalNavigation') === 'true';
+                var isReload = (performance.getEntriesByType &&
+                    performance.getEntriesByType('navigation')[0] &&
+                    performance.getEntriesByType('navigation')[0].type === 'reload') ||
+                    (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+
+                sessionStorage.removeItem('internalNavigation');
+
+                if (isInternal && !isReload) {
+                    hideLoadingNow();
+                    return;
+                }
+
+                // Video Logic
+                if (video) {
+                    video.playbackRate = 2.0; // 2x Speed
+
+                    var playPromise = video.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(function () {
+                            video.playbackRate = 2.0;
+                        }).catch(function (error) {
+                            console.log('Autoplay blocked:', error);
+                            setTimeout(hideLoadingFade, 500);
+                        });
+                    }
+                    video.onended = hideLoadingFade;
+                }
+
+                // Fallback
+                setTimeout(hideLoadingFade, 2000);
+                window.addEventListener('load', function () {
+                    setTimeout(hideLoadingFade, 1500);
+                });
+            })();
+        }
     </script>
 </body>
 
